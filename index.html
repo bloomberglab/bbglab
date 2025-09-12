@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robotics Lab - Component Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+        }
+        .nav-tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        .search-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .search-input {
+            flex: 2;
+            min-width: 200px;
+        }
+        .search-select {
+            flex: 1;
+            min-width: 150px;
+        }
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        .component-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #667eea;
+        }
+        .component-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        .component-card h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .component-info {
+            margin-bottom: 15px;
+        }
+        .component-info span {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .status-available { color: #27ae60; font-weight: 600; }
+        .status-borrowed { color: #e74c3c; font-weight: 600; }
+        .status-out-of-stock { color: #e74c3c; font-weight: 600; }
+        .transaction-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ecf0f1;
+            border-radius: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+        .transaction-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .transaction-item:last-child {
+            margin-bottom: 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .close:hover {
+            color: #333;
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        .file-upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .file-upload-area:hover {
+            border-color: #764ba2;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        .file-upload-area.dragover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #764ba2;
+        }
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            .search-container {
+                flex-direction: column;
+            }
+            .component-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Robotics Lab</h1>
+            <p>Component Management System</p>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard')">Dashboard</button>
+            <button class="nav-tab" onclick="showTab('components')">Components</button>
+            <button class="nav-tab" onclick="showTab('checkout')">Check Out</button>
+            <button class="nav-tab" onclick="showTab('return')">Return</button>
+            <button class="nav-tab" onclick="showTab('students')">Students</button>
+            <button class="nav-tab" onclick="showTab('data')">Import Data</button>
+        </div>
+        <div id="dashboard" class="tab-content active">
+            <h2>Lab Statistics</h2>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalComponents">0</div>
+                    <div class="stat-label">Total Components</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="availableComponents">0</div>
+                    <div class="stat-label">Available</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="borrowedComponents">0</div>
+                    <div class="stat-label">Borrowed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalStudents">0</div>
+                    <div class="stat-label">Registered Students</div>
+                </div>
+            </div>
+            <h3>Recent Transactions</h3>
+            <div class="transaction-list" id="recentTransactions">
+                <p>No recent transactions</p>
+            </div>
+        </div>
+        <div id="components" class="tab-content">
+            <h2>Component Inventory</h2>
+            <div class="search-container">
+                <input type="text" class="search-input" id="componentSearch" placeholder="Search components...">
+                <select class="search-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="Sensors">Sensors</option>
+                    <option value="Actuators">Actuators</option>
+                    <option value="Controllers">Controllers</option>
+                    <option value="Power">Power</option>
+                    <option value="Mechanical">Mechanical</option>
+                    <option value="Electronics">Electronics</option>
+                </select>
+                <select class="search-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="Available">Available</option>
+                    <option value="Borrowed">Borrowed</option>
+                    <option value="Maintenance">Maintenance</option>
+                </select>
+                <button class="btn" onclick="addComponent()">Add Component</button>
+            </div>
+            <div class="component-grid" id="componentGrid">
+                </div>
+        </div>
+        <div id="checkout" class="tab-content">
+            <h2>Check Out Components</h2>
+            <div class="form-group">
+                <label>Select Student:</label>
+                <select id="checkoutStudent" required>
+                    <option value="">Choose a student...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Select Component:</label>
+                <select id="checkoutComponent" required>
+                    <option value="">Choose a component...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Expected Return Date:</label>
+                <input type="date" id="returnDate" required>
+            </div>
+            <div class="form-group">
+                <label>Purpose/Notes:</label>
+                <input type="text" id="checkoutNotes" placeholder="Project name, experiment, etc.">
+            </div>
+            <button class="btn" onclick="checkoutComponent()">Check Out Component</button>
+        </div>
+        <div id="return" class="tab-content">
+            <h2>Return Components</h2>
+            <div class="form-group">
+                <label>Select Student:</label>
+                <select id="returnStudent" onchange="loadBorrowedComponents()">
+                    <option value="">Choose a student...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Select Component to Return:</label>
+                <select id="returnComponent">
+                    <option value="">Choose a component...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Condition Notes:</label>
+                <input type="text" id="returnNotes" placeholder="Any damage, issues, or notes...">
+            </div>
+            <button class="btn" onclick="returnComponent()">Return Component</button>
+            <h3>Currently Borrowed Components</h3>
+            <div class="transaction-list" id="borrowedList">
+                </div>
+        </div>
+        <div id="students" class="tab-content">
+            <h2>Student Management</h2>
+            <div class="form-group">
+                <label>Student Name:</label>
+                <input type="text" id="studentName" placeholder="Enter student name">
+            </div>
+            <div class="form-group">
+                <label>Student ID:</label>
+                <input type="text" id="studentId" placeholder="Enter student ID">
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="studentEmail" placeholder="student@example.com">
+            </div>
+            <div class="form-group">
+                <label>Department:</label>
+                <input type="text" id="studentDepartment" placeholder="e.g., Mechanical Engineering">
+            </div>
+            <button class="btn" onclick="addStudent()">Register Student</button>
+            <h3>Registered Students</h3>
+            <div class="transaction-list" id="studentList">
+                </div>
+        </div>
+        <div id="data" class="tab-content">
+            <h2>Import Lab Data</h2>
+            <div class="file-upload-area" id="fileUploadArea" onclick="document.getElementById('fileInput').click()">
+                <h3>📁 Upload Excel File</h3>
+                <p>Click here or drag and drop your Excel file (.xlsx, .xls)</p>
+                <p><small>Expected columns: Name, Category, Description, Quantity, Status, Location</small></p>
+            </div>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;" onchange="handleFileUpload(event)">
+            <div class="form-group">
+                <button class="btn btn-secondary" onclick="downloadSampleFile()">Download Sample Excel</button>
+                <button class="btn" onclick="exportData()">Export Current Data</button>
+            </div>
+            <div id="uploadStatus" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+    <div id="componentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Add/Edit Component</h2>
+            <div class="form-group">
+                <label>Component Name:</label>
+                <input type="text" id="modalComponentName" placeholder="e.g., Arduino Uno">
+            </div>
+            <div class="form-group">
+                <label>Category:</label>
+                <select id="modalComponentCategory">
+                    <option value="Sensors">Sensors</option>
+                    <option value="Actuators">Actuators</option>
+                    <option value="Controllers">Controllers</option>
+                    <option value="Power">Power</option>
+                    <option value="Mechanical">Mechanical</option>
+                    <option value="Electronics">Electronics</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Description:</label>
+                <input type="text" id="modalComponentDescription" placeholder="Brief description">
+            </div>
+            <div class="form-group">
+                <label>Quantity:</label>
+                <input type="number" id="modalComponentQuantity" value="1" min="1">
+            </div>
+            <div class="form-group">
+                <label>Location:</label>
+                <input type="text" id="modalComponentLocation" placeholder="e.g., Shelf A, Drawer 3">
+            </div>
+            <button class="btn" onclick="saveComponent()">Save Component</button>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Data structures
+        let components = [];
+        let students = [];
+        let transactions = [];
+        let editingComponentId = null;
+        // Initialize the application
+        function init() {
+            loadData();
+            updateDashboard();
+            populateDropdowns();
+            setDefaultReturnDate();
+            setupFileUpload();
+        }
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            // Update data when switching to certain tabs
+            if (tabName === 'dashboard') updateDashboard();
+            if (tabName === 'return') loadBorrowedComponentsList();
+            // Add the 'active' class to the clicked tab button
+            event.currentTarget.classList.add('active');
+        }
+        // Component management
+        function addComponent() {
+            editingComponentId = null;
+            document.getElementById('modalComponentName').value = '';
+            document.getElementById('modalComponentCategory').value = 'Sensors';
+            document.getElementById('modalComponentDescription').value = '';
+            document.getElementById('modalComponentQuantity').value = '1';
+            document.getElementById('modalComponentLocation').value = '';
+            document.getElementById('componentModal').style.display = 'block';
+        }
+        function editComponent(id) {
+            const component = components.find(c => c.id === id);
+            if (component) {
+                editingComponentId = id;
+                document.getElementById('modalComponentName').value = component.name;
+                document.getElementById('modalComponentCategory').value = component.category;
+                document.getElementById('modalComponentDescription').value = component.description;
+                document.getElementById('modalComponentQuantity').value = component.quantity;
+                document.getElementById('modalComponentLocation').value = component.location;
+                document.getElementById('componentModal').style.display = 'block';
+            }
+        }
+        function saveComponent() {
+            const name = document.getElementById('modalComponentName').value;
+            const category = document.getElementById('modalComponentCategory').value;
+            const description = document.getElementById('modalComponentDescription').value;
+            const quantity = parseInt(document.getElementById('modalComponentQuantity').value);
+            const location = document.getElementById('modalComponentLocation').value;
+            if (!name) {
+                alert('Please enter a component name');
+                return;
+            }
+            const component = {
+                id: editingComponentId || Date.now().toString(),
+                name,
+                category,
+                description,
+                quantity,
+                available: quantity,
+                location,
+                status: 'Available'
+            };
+            if (editingComponentId) {
+                const index = components.findIndex(c => c.id === editingComponentId);
+                components[index] = { ...components[index], ...component };
+            } else {
+                components.push(component);
+            }
+            saveData();
+            displayComponents();
+            populateDropdowns();
+            updateDashboard();
+            closeModal();
+        }
+        function deleteComponent(id) {
+            if (confirm('Are you sure you want to delete this component?')) {
+                components = components.filter(c => c.id !== id);
+                saveData();
+                displayComponents();
+                populateDropdowns();
+                updateDashboard();
+            }
+        }
+        function displayComponents() {
+            const grid = document.getElementById('componentGrid');
+            const searchTerm = document.getElementById('componentSearch').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            let filteredComponents = components.filter(component => {
+                return component.name.toLowerCase().includes(searchTerm) &&
+                       (categoryFilter === '' || component.category === categoryFilter) &&
+                       (statusFilter === '' || component.status === statusFilter);
+            });
+            grid.innerHTML = filteredComponents.map(component => `
+                <div class="component-card">
+                    <h3>${component.name}</h3>
+                    <div class="component-info">
+                        <span><strong>Category:</strong> ${component.category}</span>
+                        <span><strong>Description:</strong> ${component.description}</span>
+                        <span><strong>Available:</strong> ${component.available}/${component.quantity}</span>
+                        <span><strong>Location:</strong> ${component.location}</span>
+                        <span class="status-${component.status.toLowerCase()}"><strong>Status:</strong> ${component.status}</span>
+                    </div>
+                    <button class="btn" onclick="editComponent('${component.id}')">Edit</button>
+                    <button class="btn btn-danger" onclick="deleteComponent('${component.id}')">Delete</button>
+                </div>
+            `).join('');
+        }
+        // Student management
+        function addStudent() {
+            const name = document.getElementById('studentName').value;
+            const studentId = document.getElementById('studentId').value;
+            const email = document.getElementById('studentEmail').value;
+            const department = document.getElementById('studentDepartment').value;
+            if (!name || !studentId) {
+                alert('Please enter student name and ID');
+                return;
+            }
+            const student = {
+                id: Date.now().toString(),
+                name,
+                studentId,
+                email,
+                department,
+                registeredDate: new Date().toLocaleDateString()
+            };
+            students.push(student);
+            saveData();
+            displayStudents();
+            populateDropdowns();
+            updateDashboard();
+            // Clear form
+            document.getElementById('studentName').value = '';
+            document.getElementById('studentId').value = '';
+            document.getElementById('studentEmail').value = '';
+            document.getElementById('studentDepartment').value = '';
+        }
+        function displayStudents() {
+            const list = document.getElementById('studentList');
+            list.innerHTML = students.map(student => `
+                <div class="transaction-item">
+                    <strong>${student.name}</strong> (ID: ${student.studentId})<br>
+                    <small>Email: ${student.email} | Department: ${student.department}</small><br>
+                    <small>Registered: ${student.registeredDate}</small>
+                    <button class="btn btn-danger" onclick="deleteStudent('${student.id}')" style="float: right; margin-top: -5px;">Delete</button>
+                </div>
+            `).join('');
+        }
+        function deleteStudent(id) {
+            if (confirm('Are you sure you want to delete this student?')) {
+                students = students.filter(s => s.id !== id);
+                saveData();
+                displayStudents();
+                populateDropdowns();
+                updateDashboard();
+            }
+        }
+        // Transaction management
+        function checkoutComponent() {
+            const studentId = document.getElementById('checkoutStudent').value;
+            const componentId = document.getElementById('checkoutComponent').value;
+            const returnDate = document.getElementById('returnDate').value;
+            const notes = document.getElementById('checkoutNotes').value;
+            if (!studentId || !componentId || !returnDate) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            const student = students.find(s => s.id === studentId);
+            const component = components.find(c => c.id === componentId);
+            if (!student || !component || component.available <= 0) {
+                alert('Invalid selection or component not available');
+                return;
+            }
+            const transaction = {
+                id: Date.now().toString(),
+                studentId: studentId,
+                studentName: student.name,
+                componentId: componentId,
+                componentName: component.name,
+                checkoutDate: new Date().toLocaleDateString(),
+                expectedReturnDate: returnDate,
+                notes: notes,
+                status: 'Borrowed'
+            };
+            transactions.push(transaction);
+            // Update component availability
+            component.available--;
+            if (component.available === 0) {
+                component.status = 'Borrowed';
+            }
+            saveData();
+            updateDashboard();
+            populateDropdowns();
+            displayComponents();
+            // Clear form
+            document.getElementById('checkoutStudent').value = '';
+            document.getElementById('checkoutComponent').value = '';
+            document.getElementById('returnDate').value = '';
+            document.getElementById('checkoutNotes').value = '';
+            alert('Component checked out successfully!');
+        }
+        function returnComponent() {
+            const studentId = document.getElementById('returnStudent').value;
+            const transactionId = document.getElementById('returnComponent').value;
+            const notes = document.getElementById('returnNotes').value;
+            if (!studentId || !transactionId) {
+                alert('Please select student and component');
+                return;
+            }
+            const transaction = transactions.find(t => t.id === transactionId);
+            const component = components.find(c => c.id === transaction.componentId);
+            if (!transaction || !component) {
+                alert('Transaction or component not found');
+                return;
+            }
+            // Update transaction
+            transaction.status = 'Returned';
+            transaction.returnDate = new Date().toLocaleDateString();
+            transaction.returnNotes = notes;
+            // Update component availability
+            component.available++;
+            if (component.available > 0) {
+                component.status = 'Available';
+            }
+            saveData();
+            updateDashboard();
+            populateDropdowns();
+            displayComponents();
+            loadBorrowedComponents();
+            loadBorrowedComponentsList();
+            // Clear form
+            document.getElementById('returnStudent').value = '';
+            document.getElementById('returnComponent').value = '';
+            document.getElementById('returnNotes').value = '';
+            alert('Component returned successfully!');
+        }
+        function loadBorrowedComponents() {
+            const studentId = document.getElementById('returnStudent').value;
+            const select = document.getElementById('returnComponent');
+            select.innerHTML = '<option value="">Choose a component...</option>';
+            if (studentId) {
+                const borrowedTransactions = transactions.filter(t =>
+                    t.studentId === studentId && t.status === 'Borrowed'
+                );
+                borrowedTransactions.forEach(transaction => {
+                    select.innerHTML += `
+                        <option value="${transaction.id}">
+                            ${transaction.componentName} (Borrowed: ${transaction.checkoutDate})
+                        </option>
+                    `;
+                });
+            }
+        }
+        function loadBorrowedComponentsList() {
+            const list = document.getElementById('borrowedList');
+            const borrowed = transactions.filter(t => t.status === 'Borrowed');
+            if (borrowed.length === 0) {
+                list.innerHTML = '<p>No components currently borrowed</p>';
+                return;
+            }
+            list.innerHTML = borrowed.map(transaction => `
+                <div class="transaction-item">
+                    <strong>${transaction.componentName}</strong><br>
+                    <small>Student: ${transaction.studentName}</small><br>
+                    <small>Borrowed: ${transaction.checkoutDate} | Expected Return: ${transaction.expectedReturnDate}</small><br>
+                    <small>Notes: ${transaction.notes || 'None'}</small>
+                </div>
+            `).join('');
+        }
+        // Dashboard and utility functions
+        function updateDashboard() {
+            document.getElementById('totalComponents').textContent = components.length;
+            document.getElementById('availableComponents').textContent =
+                components.filter(c => c.available > 0).length;
+            document.getElementById('borrowedComponents').textContent =
+                components.filter(c => c.available < c.quantity).length;
+            document.getElementById('totalStudents').textContent = students.length;
+            // Update recent transactions
+            const recent = transactions.slice(-5).reverse();
+            const recentDiv = document.getElementById('recentTransactions');
+            if (recent.length === 0) {
+                recentDiv.innerHTML = '<p>No recent transactions</p>';
+                return;
+            }
+            recentDiv.innerHTML = recent.map(transaction => `
+                <div class="transaction-item">
+                    <strong>${transaction.componentName}</strong> - ${transaction.status}<br>
+                    <small>Student: ${transaction.studentName}</small><br>
+                    <small>Date: ${transaction.status === 'Returned' ? transaction.returnDate : transaction.checkoutDate}</small>
+                </div>
+            `).join('');
+        }
+        function populateDropdowns() {
+            // Populate student dropdowns
+            const checkoutStudentSelect = document.getElementById('checkoutStudent');
+            const returnStudentSelect = document.getElementById('returnStudent');
+            const studentOptions = students.map(student =>
+                `<option value="${student.id}">${student.name} (${student.studentId})</option>`
+            ).join('');
+            checkoutStudentSelect.innerHTML = '<option value="">Choose a student...</option>' + studentOptions;
+            returnStudentSelect.innerHTML = '<option value="">Choose a student...</option>' + studentOptions;
+            // Populate component dropdown for checkout
+            const checkoutComponentSelect = document.getElementById('checkoutComponent');
+            const availableComponents = components.filter(c => c.available > 0);
+            const componentOptions = availableComponents.map(component =>
+                `<option value="${component.id}">${component.name} (Available: ${component.available})</option>`
+            ).join('');
+            checkoutComponentSelect.innerHTML = '<option value="">Choose a component...</option>' + componentOptions;
+        }
+        function setDefaultReturnDate() {
+            const today = new Date();
+            today.setDate(today.getDate() + 7); // Default to 1 week from now
+            document.getElementById('returnDate').value = today.toISOString().split('T')[0];
+        }
+        // Data persistence
+        function saveData() {
+            const data = {
+                components,
+                students,
+                transactions
+            };
+            // In a real application, this would be saved to a database
+            // For now, we'll use sessionStorage for demo purposes
+            console.log('Data saved:', data);
+        }
+        function loadData() {
+            // In a real application, this would load from a database
+            // For demo, we'll initialize with sample data
+            if (components.length === 0) {
+                initializeSampleData();
+            }
+        }
+        function initializeSampleData() {
+            // Sample components
+            components = [
+                {
+                    id: '1',
+                    name: 'Arduino Uno R3',
+                    category: 'Controllers',
+                    description: 'Microcontroller board based on ATmega328P',
+                    quantity: 10,
+                    available: 8,
+                    location: 'Shelf A, Row 1',
+                    status: 'Available'
+                },
+                {
+                    id: '2',
+                    name: 'Ultrasonic Sensor HC-SR04',
+                    category: 'Sensors',
+                    description: 'Distance measuring sensor',
+                    quantity: 15,
+                    available: 12,
+                    location: 'Drawer 2',
+                    status: 'Available'
+                },
+                {
+                    id: '3',
+                    name: 'Servo Motor SG90',
+                    category: 'Actuators',
+                    description: '9g micro servo motor',
+                    quantity: 8,
+                    available: 0,
+                    location: 'Shelf B, Row 2',
+                    status: 'Borrowed'
+                }
+            ];
+            // Sample students
+            students = [
+                {
+                    id: '1',
+                    name: 'John Doe',
+                    studentId: 'CS001',
+                    email: 'john.doe@university.edu',
+                    department: 'Computer Science',
+                    registeredDate: '2024-01-15'
+                },
+                {
+                    id: '2',
+                    name: 'Jane Smith',
+                    studentId: 'EE002',
+                    email: 'jane.smith@university.edu',
+                    department: 'Electrical Engineering',
+                    registeredDate: '2024-01-20'
+                }
+            ];
+            // Sample transactions
+            transactions = [
+                {
+                    id: '1',
+                    studentId: '1',
+                    studentName: 'John Doe',
+                    componentId: '3',
+                    componentName: 'Servo Motor SG90',
+                    checkoutDate: '2024-02-01',
+                    expectedReturnDate: '2024-02-15',
+                    notes: 'Robot arm project',
+                    status: 'Borrowed'
+                }
+            ];
+        }
+        // File upload functionality
+        function setupFileUpload() {
+            const uploadArea = document.getElementById('fileUploadArea');
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload({ target: { files } });
+                }
+            });
+        }
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.innerHTML = '<p>Processing file...</p>';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    processExcelData(jsonData);
+                    statusDiv.innerHTML = `<p style="color: green;">✅ Successfully imported ${jsonData.length} components!</p>`;
+                } catch (error) {
+                    statusDiv.innerHTML = `<p style="color: red;">❌ Error processing file: ${error.message}</p>`;
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        function processExcelData(data) {
+            data.forEach((row) => {
+                const component = {
+                    id: Date.now().toString() + Math.random(),
+                    name: row['Component name'] || 'Unknown Component',
+                    category: 'Electronics',
+                    description: '',
+                    quantity: parseInt(row.Count) || 1,
+                    available: parseInt(row.Count) || 1,
+                    location: 'Box No. ' + row['Box No.'] || 'Unknown',
+                    status: 'Available'
+                };
+                // Check if component already exists
+                const existingIndex = components.findIndex(c =>
+                    c.name.toLowerCase() === component.name.toLowerCase()
+                );
+                if (existingIndex >= 0) {
+                    // Update existing component
+                    components[existingIndex].quantity += component.quantity;
+                    components[existingIndex].available += component.available;
+                    if (components[existingIndex].status === 'Borrowed' && components[existingIndex].available > 0) {
+                        components[existingIndex].status = 'Available';
+                    }
+                } else {
+                    // Add new component
+                    components.push(component);
+                }
+            });
+            saveData();
+            displayComponents();
+            populateDropdowns();
+            updateDashboard();
+        }
+        function downloadSampleFile() {
+            const sampleData = [
+                {
+                    'Name': 'Arduino Nano',
+                    'Category': 'Controllers',
+                    'Description': 'Small microcontroller board',
+                    'Quantity': 5,
+                    'Status': 'Available',
+                    'Location': 'Shelf A'
+                },
+                {
+                    'Name': 'PIR Motion Sensor',
+                    'Category': 'Sensors',
+                    'Description': 'Passive infrared sensor',
+                    'Quantity': 10,
+                    'Status': 'Available',
+                    'Location': 'Drawer 1'
+                }
+            ];
+            const ws = XLSX.utils.json_to_sheet(sampleData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Components');
+            XLSX.writeFile(wb, 'sample_components.xlsx');
+        }
+        function exportData() {
+            if (components.length === 0) {
+                alert('No data to export');
+                return;
+            }
+            const exportData = components.map(c => ({
+                'Name': c.name,
+                'Category': c.category,
+                'Description': c.description,
+                'Total Quantity': c.quantity,
+                'Available': c.available,
+                'Status': c.status,
+                'Location': c.location
+            }));
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Components');
+            XLSX.writeFile(wb, 'lab_components_export.xlsx');
+        }
+        // Modal management
+        function closeModal() {
+            document.getElementById('componentModal').style.display = 'none';
+        }
+        // Search functionality
+        document.getElementById('componentSearch').addEventListener('input', displayComponents);
+        document.getElementById('categoryFilter').addEventListener('change', displayComponents);
+        document.getElementById('statusFilter').addEventListener('change', displayComponents);
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('componentModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+        // Initialize the application when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+            displayComponents();
+            displayStudents();
+            loadBorrowedComponentsList();
+        });
+    </script>
+</body>
+</html>
