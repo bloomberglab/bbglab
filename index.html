@@ -556,30 +556,42 @@
             }
         }
         function displayComponents() {
-            const grid = document.getElementById('componentGrid');
-            const searchTerm = document.getElementById('componentSearch').value.toLowerCase();
-            const categoryFilter = document.getElementById('categoryFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
-            let filteredComponents = components.filter(component => {
-                return component.name.toLowerCase().includes(searchTerm) &&
-                       (categoryFilter === '' || component.category === categoryFilter) &&
-                       (statusFilter === '' || component.status === statusFilter);
-            });
-            grid.innerHTML = filteredComponents.map(component => `
-                <div class="component-card">
-                    <h3>${component.name}</h3>
-                    <div class="component-info">
-                        <span><strong>Category:</strong> ${component.category}</span>
-                        <span><strong>Description:</strong> ${component.description}</span>
-                        <span><strong>Available:</strong> ${component.available}/${component.quantity}</span>
-                        <span><strong>Location:</strong> ${component.location}</span>
-                        <span class="status-${component.status.toLowerCase()}"><strong>Status:</strong> ${component.status}</span>
-                    </div>
-                    <button class="btn" onclick="editComponent('${component.id}')">Edit</button>
-                    <button class="btn btn-danger" onclick="deleteComponent('${component.id}')">Delete</button>
-                </div>
-            `).join('');
+    const grid = document.getElementById('componentGrid');
+    const searchTerm = document.getElementById('componentSearch').value.toLowerCase();
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+
+    let filteredComponents = components.filter(component => {
+        // Check for the "Unavailable" condition here
+        if (component.quantity === 0) {
+            component.status = 'Unavailable';
+        } else if (component.available === 0) {
+            component.status = 'Borrowed';
+        } else {
+            component.status = 'Available';
         }
+
+        return component.name.toLowerCase().includes(searchTerm) &&
+            (categoryFilter === '' || component.category === categoryFilter) &&
+            (statusFilter === '' || component.status === statusFilter);
+    });
+
+    // The rest of the function remains the same, mapping the filtered components to HTML
+    grid.innerHTML = filteredComponents.map(component => `
+        <div class="component-card">
+            <h3>${component.name}</h3>
+            <div class="component-info">
+                <span><strong>Category:</strong> ${component.category}</span>
+                <span><strong>Description:</strong> ${component.description}</span>
+                <span><strong>Available:</strong> ${component.available}/${component.quantity}</span>
+                <span><strong>Location:</strong> ${component.location}</span>
+                <span class="status-${component.status.toLowerCase()}"><strong>Status:</strong> ${component.status}</span>
+            </div>
+            <button class="btn" onclick="editComponent('${component.id}')">Edit</button>
+            <button class="btn btn-danger" onclick="deleteComponent('${component.id}')">Delete</button>
+        </div>
+    `).join('');
+}
         // Student management
         function addStudent() {
             const name = document.getElementById('studentName').value;
